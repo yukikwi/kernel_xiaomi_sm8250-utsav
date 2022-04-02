@@ -93,42 +93,6 @@ static void ufshcd_update_error_stats(struct ufs_hba *hba, int type)
 		hba->ufs_stats.err_stats[type]++;
 }
 
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-static int ufshcd_init_statistics(struct ufs_hba *hba)
-{
-	struct ufs_stats *stats = &hba->ufs_stats;
-	int ret = 0;
-	int i;
-
-	stats->enabled = false;
-	stats->req_stats_enabled = false;
-	stats->tag_stats = kcalloc(hba->nutrs, sizeof(*stats->tag_stats),
-			GFP_KERNEL);
-	if (!hba->ufs_stats.tag_stats)
-		goto no_mem;
-
-	stats->tag_stats[0] = kzalloc(sizeof(**stats->tag_stats) *
-			TS_NUM_STATS * hba->nutrs, GFP_KERNEL);
-	if (!stats->tag_stats[0])
-		goto no_mem;
-
-	for (i = 1; i < hba->nutrs; i++)
-		stats->tag_stats[i] = &stats->tag_stats[0][i * TS_NUM_STATS];
-
-	memset(stats->err_stats, 0, sizeof(hba->ufs_stats.err_stats));
-
-	memset(stats->req_stats, 0, sizeof(struct ufshcd_req_stat) * TS_NUM_STATS);
-
-	goto exit;
-
-no_mem:
-	dev_err(hba->dev, "%s: Unable to allocate UFS tag_stats\n", __func__);
-	ret = -ENOMEM;
-exit:
-	return ret;
-}
-#endif
-
 static void ufshcd_update_tag_stats(struct ufs_hba *hba, int tag)
 {
 	struct request *rq =
@@ -164,11 +128,6 @@ static void update_req_stats(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 	struct request *rq = lrbp->cmd ? lrbp->cmd->request : NULL;
 	s64 delta = ktime_us_delta(lrbp->compl_time_stamp,
 		lrbp->issue_time_stamp);
-
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-	if (!hba->ufs_stats.req_stats_enabled)
-		return;
-#endif
 
 	/* update general request statistics */
 	if (hba->ufs_stats.req_stats[TS_TAG].count == 0)
@@ -270,6 +229,7 @@ static void ufshcd_update_uic_error_cnt(struct ufs_hba *hba, u32 reg, int type)
 /* UIC command timeout, unit: ms */
 #define UIC_CMD_TIMEOUT	500
 
+#define UIC_MI_CMD_TIMEOUT	3000
 /* NOP OUT retries waiting for NOP IN response */
 #define NOP_OUT_RETRIES    10
 /* Timeout after 30 msecs if NOP OUT hangs without response */
@@ -278,7 +238,7 @@ static void ufshcd_update_uic_error_cnt(struct ufs_hba *hba, u32 reg, int type)
 /* Query request retries */
 #define QUERY_REQ_RETRIES 3
 /* Query request timeout */
-#define QUERY_REQ_TIMEOUT 3000 /* 3.0 seconds */
+#define QUERY_REQ_TIMEOUT 1500 /* 1.5 seconds */
 
 /* Task management command timeout */
 #define TM_CMD_TIMEOUT	100 /* msecs */
@@ -486,8 +446,6 @@ static struct ufs_dev_fix ufs_fixups[] = {
 	UFS_FIX(UFS_VENDOR_SKHYNIX, UFS_ANY_MODEL,
 		UFS_DEVICE_QUIRK_HOST_PA_TACTIVATE),
 	UFS_FIX(UFS_VENDOR_SAMSUNG, UFS_ANY_MODEL, UFS_DEVICE_NO_VCCQ),
-	UFS_FIX(UFS_VENDOR_MICRON, "MT128GAXAU2U227X",
-		UFS_DEVICE_QUIRK_PA_HIBER8TIME),
 	UFS_FIX(UFS_VENDOR_TOSHIBA, UFS_ANY_MODEL,
 		UFS_DEVICE_QUIRK_DELAY_BEFORE_LPM),
 	UFS_FIX(UFS_VENDOR_TOSHIBA, UFS_ANY_MODEL,
@@ -2336,9 +2294,8 @@ start:
 				flush_result = flush_work(&hba->clk_gating.ungate_work);
 				if (hba->clk_gating.is_suspended && !flush_result)
 					goto out;
-			} else {
+			} else
 				ufshcd_panic_ungate_work(hba);
-			}
 
 			ufs_spin_lock_irqsave(hba->host->host_lock, flags);
 			if (hba->ufshcd_state == UFSHCD_STATE_OPERATIONAL)
@@ -2414,6 +2371,7 @@ static void ufshcd_gate_work(struct work_struct *work)
 
 	hba->clk_gating.gate_wk_in_process = true;
 	ufs_spin_lock_irqsave(hba->host->host_lock, flags);
+
 	if (hba->clk_gating.state == CLKS_OFF)
 		goto rel_lock;
 	/*
@@ -3373,12 +3331,8 @@ ufshcd_wait_for_uic_cmd(struct ufs_hba *hba, struct uic_command *uic_cmd)
 	else
 		ret = -ETIMEDOUT;
 
-	if (ret) {
+	if (ret)
 		ufsdbg_set_err_state(hba);
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-		hba->ufs_stats.err_stats[UFS_ERR_UIC_CMD]++;
-#endif
-	}
 
 	ufshcd_dme_cmd_log(hba, "dme_cmpl_1", hba->active_uic_cmd->command);
 
@@ -4230,16 +4184,8 @@ static int ufshcd_wait_for_dev_cmd(struct ufs_hba *hba,
 		ufshcd_outstanding_req_clear(hba, lrbp->task_tag);
 	}
 
-	if (err
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-		&& err != -EAGAIN
-#endif
-	) {
+	if (err && err != -EAGAIN)
 		ufsdbg_set_err_state(hba);
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-		hba->ufs_stats.err_stats[UFS_ERR_DEV_CMD]++;
-#endif
-	}
 
 	return err;
 }
@@ -4878,7 +4824,6 @@ int ufshcd_read_device_desc(struct ufs_hba *hba, u8 *buf, u32 size)
 	return ufshcd_read_desc(hba, QUERY_DESC_IDN_DEVICE, 0, buf, size);
 }
 
-
 /**
  * ufshcd_read_string_desc - read string descriptor
  * @hba: pointer to adapter instance
@@ -4896,6 +4841,7 @@ int ufshcd_read_string_desc(struct ufs_hba *hba, int desc_index,
 
 	err = ufshcd_read_desc(hba,
 				QUERY_DESC_IDN_STRING, desc_index, buf, size);
+
 	if (err) {
 		dev_err(hba->dev, "%s: reading String Desc failed after %d retries. err = %d\n",
 			__func__, QUERY_REQ_RETRIES, err);
@@ -4909,7 +4855,6 @@ int ufshcd_read_string_desc(struct ufs_hba *hba, int desc_index,
 		char *buff_ascii;
 
 		desc_len = buf[0];
-
 		/* remove header and divide by 2 to move from UTF16 to UTF8 */
 		ascii_len = (desc_len - QUERY_DESC_HDR_SIZE) / 2 + 1;
 		if (size < ascii_len + QUERY_DESC_HDR_SIZE) {
@@ -4924,6 +4869,7 @@ int ufshcd_read_string_desc(struct ufs_hba *hba, int desc_index,
 			err = -ENOMEM;
 			goto out;
 		}
+
 		/*
 		 * the descriptor contains string in UTF16 format
 		 * we need to convert to utf-8 so it can be displayed
@@ -5424,7 +5370,7 @@ static int ufshcd_uic_pwr_ctrl(struct ufs_hba *hba, struct uic_command *cmd)
 more_wait:
 	if (!oops_in_progress) {
 		if (!wait_for_completion_timeout(hba->uic_async_done,
-						msecs_to_jiffies(UIC_CMD_TIMEOUT))) {
+						msecs_to_jiffies(UIC_MI_CMD_TIMEOUT))) {
 			u32 intr_status = 0;
 			s64 ts_since_last_intr;
 
@@ -5492,9 +5438,6 @@ more_wait:
 out:
 	if (ret) {
 		ufsdbg_set_err_state(hba);
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-		hba->ufs_stats.err_stats[UFS_ERR_PWR_CTRL]++;
-#endif
 		ufshcd_print_host_state(hba);
 		ufshcd_print_pwr_info(hba);
 		ufshcd_print_host_regs(hba);
@@ -6463,11 +6406,6 @@ static int ufshcd_change_queue_depth(struct scsi_device *sdev, int depth)
 	return scsi_change_queue_depth(sdev, depth);
 }
 
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-#define UFS_GET_INFO_LUN 		2
-extern void set_ufs_hba_data(struct scsi_device *sdev);
-#endif
-
 /**
  * ufshcd_slave_configure - adjust SCSI device configurations
  * @sdev: pointer to SCSI device
@@ -6503,10 +6441,6 @@ static int ufshcd_slave_configure(struct scsi_device *sdev)
 
 	ufshcd_crypto_setup_rq_keyslot_manager(hba, q);
 
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-	if (sdev->lun == UFS_GET_INFO_LUN)
-		set_ufs_hba_data(sdev);
-#endif
 	return 0;
 }
 
@@ -6722,12 +6656,8 @@ ufshcd_transfer_rsp_status(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 	}
 
 	if ((host_byte(result) == DID_ERROR) ||
-	    (host_byte(result) == DID_ABORT)) {
+	    (host_byte(result) == DID_ABORT))
 		ufsdbg_set_err_state(hba);
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-		hba->ufs_stats.err_stats[UFS_ERR_RSP_STATUS]++;
-#endif
-	}
 
 	return result;
 }
@@ -7579,9 +7509,7 @@ static void ufshcd_err_handler(struct work_struct *work)
 
 	spin_lock_irqsave(hba->host->host_lock, flags);
 	ufsdbg_set_err_state(hba);
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-	hba->ufs_stats.err_stats[UFS_ERR_ERR_HANDLER]++;
-#endif
+
 	if (hba->ufshcd_state == UFSHCD_STATE_RESET)
 		goto out;
 
@@ -9147,9 +9075,6 @@ static void ufshcd_clear_dbg_ufs_stats(struct ufs_hba *hba)
 	memset(&hba->ufs_stats.dme_err, 0, err_reg_hist_size);
 
 	hba->req_abort_count = 0;
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-	hba->debugfs_files.err_occurred = false;
-#endif
 }
 
 static void ufshcd_init_desc_sizes(struct ufs_hba *hba)
@@ -9383,10 +9308,6 @@ reinit:
 	/* set the default level for urgent bkops */
 	hba->urgent_bkops_lvl = BKOPS_STATUS_PERF_IMPACT;
 	hba->is_urgent_bkops_lvl_checked = false;
-
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-	ufshcd_init_statistics(hba);
-#endif
 
 	/* UniPro link is active now */
 	ufshcd_set_link_active(hba);
@@ -10930,11 +10851,7 @@ enable_gating:
 out:
 	hba->pm_op_in_progress = 0;
 
-	if (ret
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-		&& (ret != -EAGAIN)
-#endif
-	)
+	if (ret)
 		ufshcd_update_error_stats(hba, UFS_ERR_SUSPEND);
 
 	return ret;

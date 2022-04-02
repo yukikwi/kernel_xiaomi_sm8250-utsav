@@ -1378,11 +1378,11 @@ struct task_struct {
 	 */
 	u64				timer_slack_ns;
 	u64				default_timer_slack_ns;
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 	unsigned int			top_app;
 	unsigned int			inherit_top_app;
 #endif
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 	unsigned int                    human_task;
 	unsigned int			cpux;
 #endif
@@ -1486,7 +1486,7 @@ struct task_struct {
 	/* Used by LSM modules for access restriction: */
 	void				*security;
 #endif
-#if IS_ENABLED(CONFIG_KPERFEVENTS)
+#ifdef CONFIG_KPERFEVENTS
 	/* lock to protect kperfevents */
 	rwlock_t kperfevents_lock;
 	/* perfevents of current task, only effective for group leader.
@@ -2258,7 +2258,7 @@ static inline void set_wake_up_idle(bool enabled)
 		current->flags &= ~PF_WAKE_UP_IDLE;
 }
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 extern inline bool is_critical_task(struct task_struct *p);
 
 extern inline bool is_top_app(struct task_struct *p);

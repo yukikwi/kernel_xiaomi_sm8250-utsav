@@ -136,8 +136,7 @@ int millet_sendto_user(struct task_struct *tsk,
 	payload->tm.sec  = ts.tv_sec;
 	payload->tm.nsec = ts.tv_nsec;
 	monitor_port = atomic_read(&sk->mod[monitor].port);
-	if (millet_debug)
-		dump_send_msg(payload);
+	dump_send_msg(payload);
 
 	ret = nlmsg_unicast(sk->sock, skb, monitor_port);
 	if (ret < 0) {

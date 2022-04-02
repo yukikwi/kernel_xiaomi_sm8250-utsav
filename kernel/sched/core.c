@@ -2186,6 +2186,7 @@ int select_task_rq(struct task_struct *p, int cpu, int sd_flags, int wake_flags,
 		   int sibling_count_hint)
 {
 	bool allow_isolated = (p->flags & PF_KTHREAD);
+
 	lockdep_assert_held(&p->pi_lock);
 
 	if (p->nr_cpus_allowed > 1)
@@ -5633,7 +5634,6 @@ long sched_setaffinity(pid_t pid, const struct cpumask *in_mask)
 
 	cpuset_cpus_allowed(p, cpus_allowed);
 	cpumask_and(new_mask, in_mask, cpus_allowed);
-	trace_sched_setaffinity(pid, in_mask);
 
 	/*
 	 * Since bandwidth control happens on root_domain basis,
@@ -8667,7 +8667,7 @@ void sched_exit(struct task_struct *p)
 
 __read_mostly bool sched_predl = 1;
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 inline bool is_critical_task(struct task_struct *p)
 {
 	return is_top_app(p) || is_inherit_top_app(p);
@@ -8691,7 +8691,7 @@ inline void set_inherit_top_app(struct task_struct *p,
 	if (is_critical_task(p) || from->inherit_top_app >= INHERIT_DEPTH)
 		return;
 	p->inherit_top_app = from->inherit_top_app + 1;
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 	p->human_task = 1;
 #endif
 }
@@ -8700,7 +8700,7 @@ inline void restore_inherit_top_app(struct task_struct *p)
 {
 	if (p && is_inherit_top_app(p)) {
 		p->inherit_top_app = 0;
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 		p->human_task  = 0 ;
 #endif
 	}

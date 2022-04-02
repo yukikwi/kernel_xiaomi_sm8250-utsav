@@ -571,7 +571,7 @@ struct cfs_rq {
 
 	u64			exec_clock;
 	u64			min_vruntime;
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 	u64			min_vruntimex;
 #endif
 #ifndef CONFIG_64BIT
@@ -2809,7 +2809,7 @@ extern void add_new_task_to_grp(struct task_struct *new);
 #define FULL_THROTTLE_BOOST 1
 #define CONSERVATIVE_BOOST 2
 #define RESTRAINED_BOOST 3
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 #define MI_BOOST         4
 #endif
 #define FULL_THROTTLE_BOOST_DISABLE -1
@@ -2958,7 +2958,7 @@ static inline int sched_boost(void)
 	return sched_boost_type;
 }
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 extern unsigned int mi_sched_boost;
 static inline int sched_mi_boost(void)
 {
@@ -2977,7 +2977,7 @@ static inline bool is_full_throttle_boost(void)
 	return sched_boost() == FULL_THROTTLE_BOOST;
 }
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 extern bool sched_boost_top_app(void);
 #endif
 extern int preferred_cluster(struct sched_cluster *cluster,
@@ -3127,7 +3127,7 @@ static inline bool is_full_throttle_boost(void)
 	return false;
 }
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 static inline bool sched_boost_top_app(void)
 {
 	return false;

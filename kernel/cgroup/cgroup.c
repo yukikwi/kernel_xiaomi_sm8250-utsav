@@ -2693,7 +2693,7 @@ int cgroup_migrate(struct task_struct *leader, bool threadgroup,
  *
  * Call holding cgroup_mutex and cgroup_threadgroup_rwsem.
  */
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 #define PATH_LEN 1024
 #endif
 int cgroup_attach_task(struct cgroup *dst_cgrp, struct task_struct *leader,
@@ -2702,7 +2702,7 @@ int cgroup_attach_task(struct cgroup *dst_cgrp, struct task_struct *leader,
 	DEFINE_CGROUP_MGCTX(mgctx);
 	struct task_struct *task;
 	int ret;
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 	char dst_path[PATH_LEN ];
 #endif
 
@@ -2730,7 +2730,7 @@ int cgroup_attach_task(struct cgroup *dst_cgrp, struct task_struct *leader,
 	cgroup_migrate_finish(&mgctx);
 
 	if (!ret) {
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 		memset(dst_path,0,sizeof(dst_path));
 		cgroup_path(dst_cgrp, dst_path, PATH_LEN);
 		trace_cgroup_attach_task(dst_cgrp, dst_path,leader, threadgroup);

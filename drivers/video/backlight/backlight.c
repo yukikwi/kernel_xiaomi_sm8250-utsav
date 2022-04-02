@@ -215,7 +215,6 @@ static ssize_t brightness_store(struct device *dev,
 		return rc;
 
 	bd->usr_brightness_req = brightness;
-
 	rc = backlight_device_set_brightness(bd, brightness);
 
 	return rc ? rc : count;

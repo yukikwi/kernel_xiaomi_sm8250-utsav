@@ -24,7 +24,7 @@
 
 #define MAX_PRIO		(MAX_RT_PRIO + NICE_WIDTH)
 #define DEFAULT_PRIO		(MAX_RT_PRIO + NICE_WIDTH / 2)
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 #define MAX_LEVER               3
 #endif
 

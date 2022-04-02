@@ -35,8 +35,6 @@
 #include <linux/log2.h>
 #include <linux/bitmap.h>
 
-#include <linux/pinctrl/pinctrl_mi.h>
-
 #include "../core.h"
 #include "../pinconf.h"
 #include "pinctrl-msm.h"
@@ -489,17 +487,6 @@ static int msm_gpio_get(struct gpio_chip *chip, unsigned offset)
 	return !!(val & BIT(g->in_bit));
 }
 
-void __iomem *msm_gpio_regadd_get(unsigned offset)
-{
-	const struct msm_pingroup *g;
-	struct msm_pinctrl *pctrl = gpiochip_get_data(&msm_pinctrl_data->chip);
-
-	g = &pctrl->soc->groups[offset];
-
-	return (pctrl->regs + g->io_reg);
-}
-EXPORT_SYMBOL(msm_gpio_regadd_get);
-
 static void msm_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 {
 	const struct msm_pingroup *g;
@@ -523,15 +510,6 @@ static void msm_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 
 #ifdef CONFIG_DEBUG_FS
 #include <linux/seq_file.h>
-#define msm_gpio_debug_output(m, c, fmt, ...)		\
-do {							\
-	if (m)						\
-		seq_printf(m, fmt, ##__VA_ARGS__);	\
-	else if (c)					\
-		pr_cont(fmt, ##__VA_ARGS__);		\
-	else						\
-		pr_info(fmt, ##__VA_ARGS__);		\
-} while (0)
 
 static void msm_gpio_dbg_show_one(struct seq_file *s,
 				  struct pinctrl_dev *pctldev,
@@ -578,14 +556,14 @@ static void msm_gpio_dbg_show_one(struct seq_file *s,
 	else
 		val = !!(io_reg & BIT(g->in_bit));
 
-	msm_gpio_debug_output(s, 1, " %-8s: %-3s %d" , g->name, is_out ? "out" : "in" , func);
-	msm_gpio_debug_output(s, 1, " %s", val ? "high":"low");
-	msm_gpio_debug_output(s, 1, " %dmA", msm_regval_to_drive(drive));
+	seq_printf(s, " %-8s: %-3s", g->name, is_out ? "out" : "in");
+	seq_printf(s, " %-4s func%d", val ? "high" : "low", func);
+	seq_printf(s, " %dmA", msm_regval_to_drive(drive));
 	if (pctrl->soc->pull_no_keeper)
-		msm_gpio_debug_output(s, 1, " %s", pulls_no_keeper[pull]);
+		seq_printf(s, " %s", pulls_no_keeper[pull]);
 	else
-		msm_gpio_debug_output(s, 1,  " %s", pulls_keeper[pull]);
-	msm_gpio_debug_output(s, 1, "\n");
+		seq_printf(s, " %s", pulls_keeper[pull]);
+	seq_puts(s, "\n");
 }
 
 static void msm_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
@@ -602,7 +580,6 @@ static void msm_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 			continue;
 		}
 		msm_gpio_dbg_show_one(s, NULL, chip, i, gpio);
-		msm_gpio_debug_output(s, 1, "\n");
 	}
 }
 

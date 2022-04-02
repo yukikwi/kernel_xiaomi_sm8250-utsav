@@ -47,7 +47,7 @@
 #include <linux/capability.h>
 #include <linux/cgroup.h>
 
-#if IS_ENABLED(CONFIG_MILLET)
+#ifdef CONFIG_MILLET
 #include <linux/millet.h>
 #endif
 
@@ -1274,7 +1274,7 @@ int do_send_sig_info(int sig, struct siginfo *info, struct task_struct *p,
 	unsigned long flags;
 	int ret = -ESRCH;
 
-#if IS_ENABLED(CONFIG_MILLET)
+#ifdef CONFIG_MILLET
 	struct millet_data data;
 
 	if (sig == SIGKILL
@@ -4256,7 +4256,7 @@ __weak const char *arch_vma_name(struct vm_area_struct *vma)
 	return NULL;
 }
 
-#if IS_ENABLED(CONFIG_MILLET)
+#ifdef CONFIG_MILLET
 int last_report_task;
 
 static int signals_sendmsg(struct task_struct *tsk,
@@ -4300,7 +4300,7 @@ void __init signals_init(void)
 	BUILD_BUG_ON(sizeof(struct siginfo) != SI_MAX_SIZE);
 
 	sigqueue_cachep = KMEM_CACHE(sigqueue, SLAB_PANIC);
-#if IS_ENABLED(CONFIG_MILLET)
+#ifdef CONFIG_MILLET
 	register_millet_hook(SIG_TYPE, NULL,
 		signals_sendmsg, signas_init_millet);
 #endif

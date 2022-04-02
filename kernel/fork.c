@@ -2026,7 +2026,7 @@ static __latent_entropy struct task_struct *copy_process(
 	p->sequential_io	= 0;
 	p->sequential_io_avg	= 0;
 #endif
-#if IS_ENABLED(CONFIG_KPERFEVENTS)
+#ifdef CONFIG_KPERFEVENTS
 	rwlock_init(&p->kperfevents_lock);
 	p->kperfevents = NULL;
 #endif
@@ -2416,11 +2416,11 @@ long _do_fork(unsigned long clone_flags,
 		get_task_struct(p);
 	}
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 	p->top_app = 0;
 	p->inherit_top_app = 0;
 #endif
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
         p->human_task = 0;
 #endif
 	wake_up_new_task(p);

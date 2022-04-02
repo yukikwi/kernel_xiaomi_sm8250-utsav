@@ -551,7 +551,7 @@ int schedtune_task_boost(struct task_struct *p)
 	rcu_read_lock();
 	st = task_schedtune(p);
 	task_boost = st->boost;
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 	if (sched_boost_top_app()) {
 		if (1 == st->sched_boost_no_override)
 			task_boost = 20;
@@ -559,7 +559,7 @@ int schedtune_task_boost(struct task_struct *p)
 			task_boost = 40;
 	}
 #endif
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 	if (p->human_task)
 		task_boost = 40;
 #endif
@@ -580,7 +580,7 @@ int schedtune_prefer_idle(struct task_struct *p)
 	rcu_read_lock();
 	st = task_schedtune(p);
 	prefer_idle = st->prefer_idle;
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 	if (sched_boost_top_app()
 		&& 1 == st->sched_boost_no_override)
 		prefer_idle = 1;

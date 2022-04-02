@@ -651,7 +651,7 @@ config QTI_MAXIM_FAN_CONTROLLER
 
 config PERF_HELPER
 	tristate "Record perflock messages"
-	default n
+	default y
 	help
 	  this module support record perf lock history and other perf messages.
 
@@ -671,7 +671,6 @@ source "drivers/misc/ocxl/Kconfig"
 source "drivers/misc/cardreader/Kconfig"
 source "drivers/misc/fpr_FingerprintCard/Kconfig"
 source "drivers/misc/qrc/Kconfig"
-source "drivers/misc/mi-memory/Kconfig"
 endmenu
 
 config OKL4_USER_VIPC

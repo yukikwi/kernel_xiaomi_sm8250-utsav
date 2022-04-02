@@ -450,7 +450,7 @@ static u64 freezer_parent_freezing_read(struct cgroup_subsys_state *css,
 	return (bool)(freezer->state & CGROUP_FREEZING_PARENT);
 }
 
-#if IS_ENABLED(CONFIG_MILLET)
+#ifdef CONFIG_MILLET
 int __weak millet_can_attach(struct cgroup_taskset *tset)
 {
 	return 0;
@@ -497,7 +497,7 @@ struct cgroup_subsys freezer_cgrp_subsys = {
 	.css_online	= freezer_css_online,
 	.css_offline	= freezer_css_offline,
 	.css_free	= freezer_css_free,
-#if IS_ENABLED(CONFIG_MILLET)
+#ifdef CONFIG_MILLET
 	.can_attach	= freezer_can_attach,
 	.cancel_attach	= freezer_cancel_attach,
 #endif

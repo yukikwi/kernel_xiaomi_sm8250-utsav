@@ -64,14 +64,12 @@
 #include <asm/efi.h>
 #include <asm/xen/hypervisor.h>
 #include <asm/mmu_context.h>
-#if IS_ENABLED(CONFIG_BOOT_INFO)
 #include <asm/bootinfo.h>
-#endif
 
 static int num_standard_resources;
 static struct resource *standard_resources;
 
-#if IS_ENABLED(CONFIG_OF_FLATTREE) && IS_ENABLED(CONFIG_BOOT_INFO)
+#ifdef CONFIG_OF_FLATTREE
 void __init early_init_dt_setup_pureason_arch(unsigned long pu_reason)
 {
 	set_powerup_reason(pu_reason);

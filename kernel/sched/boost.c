@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2012-2020, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #include "sched.h"
@@ -17,7 +18,7 @@
  */
 
 unsigned int sysctl_sched_boost; /* To/from userspace */
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 unsigned int mi_sched_boost;
 unsigned int sysctl_sched_boost_top_app;
 #endif
@@ -60,7 +61,7 @@ static void set_boost_policy(int type)
 
 static bool verify_boost_params(int type)
 {
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 	return type >= RESTRAINED_BOOST_DISABLE && type <= MI_BOOST;
 #else
 	return type >= RESTRAINED_BOOST_DISABLE && type <= RESTRAINED_BOOST;
@@ -71,7 +72,7 @@ static void sched_no_boost_nop(void)
 {
 }
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 static bool verify_boost_top_app_params(int type)
 {
 	return type >= 0;
@@ -222,7 +223,7 @@ static void sched_boost_disable_all(void)
 
 static void _sched_set_boost(int type)
 {
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 	if (type == MI_BOOST) {
 		type = FULL_THROTTLE_BOOST;
 		mi_sched_boost = MI_BOOST;
@@ -251,7 +252,7 @@ static void _sched_set_boost(int type)
 	trace_sched_set_boost(sysctl_sched_boost);
 }
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 static void sched_set_boost_top_app(int type)
 {
 	sysctl_sched_boost_top_app = type;
@@ -312,7 +313,7 @@ done:
 	return ret;
 }
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 int sched_boost_top_app_handler(struct ctl_table *table, int write,
 		void __user *buffer, size_t *lenp,
 		loff_t *ppos)

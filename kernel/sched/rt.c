@@ -10,13 +10,11 @@
 #include <linux/interrupt.h>
 #include <trace/events/sched.h>
 
-#if IS_ENABLED(CONFIG_KPERFEVENTS)
 #include <trace/events/sched.h>
-#endif
 
 #include "walt.h"
 
-#if IS_ENABLED(CONFIG_KPERFEVENTS)
+#ifdef CONFIG_KPERFEVENTS
 #include <linux/kperfevents.h>
 #include <trace/events/kperfevents_sched.h>
 #endif
@@ -1415,7 +1413,7 @@ static void dequeue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flags)
 	enqueue_top_rt_rq(&rq->rt);
 }
 
-#if IS_ENABLED(CONFIG_KPERFEVENTS)
+#ifdef CONFIG_KPERFEVENTS
 static inline void
 update_stats_enqueue_wakeup(struct rq *rq, struct task_struct *p)
 {
@@ -1475,7 +1473,7 @@ enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 	schedtune_enqueue_task(p, cpu_of(rq));
 
 	if (flags & ENQUEUE_WAKEUP) {
-#if IS_ENABLED(CONFIG_KPERFEVENTS)
+#ifdef CONFIG_KPERFEVENTS
 		update_stats_enqueue_wakeup(rq, p);
 #endif
 		rt_se->timeout = 0;
@@ -1488,7 +1486,7 @@ enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 		enqueue_pushable_task(rq, p);
 }
 
-#if IS_ENABLED(CONFIG_KPERFEVENTS)
+#ifdef CONFIG_KPERFEVENTS
 static inline void
 update_stats_dequeue_sleep(struct rq *rq, struct task_struct *p)
 {
@@ -1508,7 +1506,7 @@ static void dequeue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 
 	schedtune_dequeue_task(p, cpu_of(rq));
 
-#if IS_ENABLED(CONFIG_KPERFEVENTS)
+#ifdef CONFIG_KPERFEVENTS
 	if (flags & DEQUEUE_SLEEP)
 		update_stats_dequeue_sleep(rq, p);
 #endif

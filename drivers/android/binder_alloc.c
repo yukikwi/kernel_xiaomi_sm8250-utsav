@@ -34,7 +34,7 @@
 #include "binder_alloc.h"
 #include "binder_trace.h"
 
-#if IS_ENABLED(CONFIG_MILLET)
+#ifdef CONFIG_MILLET
 #include <linux/millet.h>
 #endif
 
@@ -388,7 +388,7 @@ static void debug_low_async_space_locked(struct binder_alloc *alloc, int pid)
 	}
 }
 
-#if IS_ENABLED(CONFIG_MILLET)
+#ifdef CONFIG_MILLET
 extern struct task_struct *binder_buff_owner(struct binder_alloc *alloc);
 #endif
 
@@ -432,7 +432,7 @@ static struct binder_buffer *binder_alloc_new_buf_locked(
 				alloc->pid, extra_buffers_size);
 		return ERR_PTR(-EINVAL);
 	}
-#if IS_ENABLED(CONFIG_MILLET)
+#ifdef CONFIG_MILLET
 	if (is_async
 		&& (alloc->free_async_space
 			< WARN_AHEAD_MSGS * (size + sizeof(struct binder_buffer))
@@ -586,7 +586,6 @@ err_alloc_buf_struct_failed:
 }
 
 
-#if IS_ENABLED(CONFIG_MIHW)
 /**
   * binder_alloc_get_free_space() - get free space available
   * @alloc:      binder_alloc for this proc
@@ -612,7 +611,6 @@ size_t binder_alloc_get_free_space(struct binder_alloc *alloc)
 	mutex_unlock(&alloc->mutex);
 	return total_free_size;
 }
-#endif
 
 /**
  * binder_alloc_new_buf() - Allocate a new binder buffer

@@ -337,7 +337,9 @@ void sched_clock_resume(void)
 {
 	struct clock_read_data *rd = &cd.read_data[0];
 
-	rd->epoch_cyc = cd.actual_read_sched_clock();
+	update_sched_clock();
+
+	resume_ns = rd->epoch_ns;
 	resume_cycles = rd->epoch_cyc;
 	pr_info("resume cycles:%17llu\n", rd->epoch_cyc);
 	hrtimer_start(&sched_clock_timer, cd.wrap_kt, HRTIMER_MODE_REL);

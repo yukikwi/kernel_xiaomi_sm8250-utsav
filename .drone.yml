@@ -28,9 +28,9 @@ steps:
       - apt-get update && apt-get install -y bison build-essential bc bison curl libssl-dev git zip python python3 flex cpio libncurses5-dev wget
       - git clone https://github.com/UtsavBalar1231/Drone-scripts.git -b test script && cd script
       - ./setup-drone --aosp-clang
-      - ./build-kernel --aosp-clang --lto
+      - ./build-kernel --aosp-clang
     when:
       branch:
-        - test
+        - test-source
       event:
         - push

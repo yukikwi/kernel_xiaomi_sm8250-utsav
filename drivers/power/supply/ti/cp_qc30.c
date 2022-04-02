@@ -968,7 +968,7 @@ void cp_statemachine(unsigned int port)
 			cp_reset_vbus_volt();
 			msleep(100);
 			if (thermal_level >= MAX_THERMAL_LEVEL
-					||pm_state.night_charging|| pm_state.is_temp_out_fc2_range) {
+					|| pm_state.night_charging|| pm_state.is_temp_out_fc2_range) {
 				cp_move_state(CP_STATE_SW_ENTRY);
 				pr_info("thermal too high or batt temp out of range or slowly charging, waiting...\n");
 			} else if (pm_state.bq2597x.vbat_volt < sys_config.min_vbat_start_flash2)

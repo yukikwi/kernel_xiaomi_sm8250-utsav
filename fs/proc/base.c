@@ -99,7 +99,7 @@
 #include "internal.h"
 #include "fd.h"
 
-#if IS_ENABLED(CONFIG_TASK_DELAY_ACCT)
+#ifdef CONFIG_TASK_DELAY_ACCT
 #include <linux/delayacct.h>
 #endif
 
@@ -775,7 +775,7 @@ static const struct file_operations proc_single_file_operations = {
 	.release	= single_release,
 };
 
-#if IS_ENABLED(CONFIG_TASK_DELAY_ACCT)
+#ifdef CONFIG_TASK_DELAY_ACCT
 struct delay_struct {
 	u64 version;
 	u64 blkio_delay;      /* wait for sync block io completion */
@@ -2760,7 +2760,7 @@ static const struct file_operations proc_pid_set_timerslack_ns_operations = {
 	.release	= single_release,
 };
 
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 static int top_app_show(struct seq_file *m, void *v)
 {
 	struct inode *inode = m->private;
@@ -3479,7 +3479,7 @@ static const struct file_operations proc_setgroups_operations = {
 };
 #endif /* CONFIG_USER_NS */
 
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 static ssize_t human_task_read(struct file *file, char __user *buf,
 		size_t count, loff_t *ppos)
 {
@@ -3612,7 +3612,7 @@ static const struct pid_entry tgid_base_stuff[] = {
 	REG("mountinfo",  S_IRUGO, proc_mountinfo_operations),
 	REG("mountstats", S_IRUSR, proc_mountstats_operations),
 #ifdef CONFIG_PROCESS_RECLAIM
-	REG("reclaim", S_IWUSR|S_IWGRP|S_IWOTH, proc_reclaim_operations),
+	REG("reclaim", 0222, proc_reclaim_operations),
 #endif
 #ifdef CONFIG_PROC_PAGE_MONITOR
 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
@@ -3672,7 +3672,7 @@ static const struct pid_entry tgid_base_stuff[] = {
 	REG("timers",	  S_IRUGO, proc_timers_operations),
 #endif
 	REG("timerslack_ns", S_IRUGO|S_IWUGO, proc_pid_set_timerslack_ns_operations),
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 	REG("top_app", S_IRUGO|S_IWUGO, proc_pid_set_top_app_operations),
 #endif
 #ifdef CONFIG_LIVEPATCH
@@ -4036,7 +4036,7 @@ static const struct pid_entry tid_base_stuff[] = {
 #ifdef CONFIG_SCHED_INFO
 	ONE("schedstat", S_IRUGO, proc_pid_schedstat),
 #endif
-#if IS_ENABLED(CONFIG_TASK_DELAY_ACCT)
+#ifdef CONFIG_TASK_DELAY_ACCT
 	REG("delay",      S_IRUGO, proc_delay_file_operations),
 #endif
 #ifdef CONFIG_LATENCYTOP
@@ -4078,10 +4078,10 @@ static const struct pid_entry tid_base_stuff[] = {
 #ifdef CONFIG_CPU_FREQ_TIMES
 	ONE("time_in_state", 0444, proc_time_in_state_show),
 #endif
-#if IS_ENABLED(CONFIG_MIHW)
+#ifdef CONFIG_MIHW
 	REG("top_app", S_IRUGO|S_IWUGO, proc_pid_set_top_app_operations),
 #endif
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
         REG("human_task", S_IRUGO|S_IWUGO, proc_tid_set_human_task_operations),
 #endif
 };

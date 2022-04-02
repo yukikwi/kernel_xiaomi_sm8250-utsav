@@ -2039,7 +2039,7 @@ void blk_init_request_from_bio(struct request *req, struct bio *bio)
 		req->ioprio = IOPRIO_PRIO_VALUE(IOPRIO_CLASS_NONE, 0);
 	req->write_hint = bio->bi_write_hint;
 
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 	if (bio->human_task)
 		req->ioprio = 0;
 #endif
@@ -2140,7 +2140,7 @@ get_rq:
 	 */
 	blk_init_request_from_bio(req, bio);
 
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
+#ifdef CONFIG_PERF_HUMANTASK
 	if (bio->human_task)
 		where = ELEVATOR_INSERT_FRONT;
 #endif
