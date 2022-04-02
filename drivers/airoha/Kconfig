@@ -1,5 +1,0 @@
-config CONFIG_AIROHA_GPS
-	bool "Airoha GPS Support"
-	default y
-	help
-		Airoha GPS Support

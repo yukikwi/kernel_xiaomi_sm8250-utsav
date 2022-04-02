@@ -3,7 +3,6 @@
  *
  * This code is based on drivers/scsi/ufs/ufshcd.h
  * Copyright (C) 2011-2013 Samsung India Software Operations
- * Copyright (C) 2021 XiaoMi, Inc.
  * Copyright (c) 2013-2020, The Linux Foundation. All rights reserved.
  *
  * Authors:
@@ -91,29 +90,6 @@ enum dev_cmd_type {
 	DEV_CMD_TYPE_QUERY		= 0x1,
 };
 
-#define ufs_spin_lock_irqsave(lock, flags)				\
-do {	\
-	if (!oops_in_progress)\
-		spin_lock_irqsave(lock, flags);	\
-} while (0)
-
-#define ufs_spin_unlock_irqrestore(lock, flags)				\
-do {	\
-	if (!oops_in_progress)\
-		spin_unlock_irqrestore(lock, flags);	\
-} while (0)
-
-#define ufs_spin_lock(lock)				\
-do {	\
-	if (!oops_in_progress)\
-		spin_lock(lock);	\
-} while (0)
-
-#define ufs_spin_unlock(lock)				\
-do {	\
-	if (!oops_in_progress)\
-		spin_unlock(lock);	\
-} while (0)
 /**
  * struct uic_command - UIC command structure
  * @command: UIC command
@@ -180,16 +156,6 @@ enum {
 	UFS_ERR_LINKSTARTUP,
 	UFS_ERR_POWER_MODE_CHANGE,
 	UFS_ERR_TASK_ABORT,
-
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-	/* MI errors*/
-	UFS_ERR_UIC_CMD,
-	UFS_ERR_DEV_CMD,
-	UFS_ERR_PWR_CTRL,
-	UFS_ERR_RSP_STATUS,
-	UFS_ERR_ERR_HANDLER,
-#endif
-
 	UFS_ERR_MAX,
 };
 
@@ -725,9 +691,6 @@ struct ufs_stats {
 	int q_depth;
 	int err_stats[UFS_ERR_MAX];
 	struct ufshcd_req_stat req_stats[TS_NUM_STATS];
-#if IS_ENABLED(CONFIG_MI_MEMORY_SYSFS)
-	bool req_stats_enabled;
-#endif
 	int query_stats_arr[UPIU_QUERY_OPCODE_MAX][MAX_QUERY_IDN];
 
 #endif

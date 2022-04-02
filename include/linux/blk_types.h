@@ -199,9 +199,6 @@ struct bio {
 	};
 
 	unsigned short		bi_vcnt;	/* how many bio_vec's */
-#if IS_ENABLED(CONFIG_PERF_HUMANTASK)
-	unsigned int            human_task;
-#endif
 
 	/*
 	 * Everything starting with bi_max_vecs will be preserved by bio_reset()
@@ -349,8 +346,6 @@ enum req_flag_bits {
 	/* for driver use */
 	__REQ_DRV,
 	__REQ_SWAP,		/* swapping request. */
-	/* for wbt use*/
-	__REQ_WBT,
 
 	__REQ_HPB_PREFER,	/* HPB Flag */
 	__REQ_NR_BITS,		/* stops here */
@@ -376,8 +371,6 @@ enum req_flag_bits {
 
 #define REQ_DRV			(1ULL << __REQ_DRV)
 #define REQ_SWAP		(1ULL << __REQ_SWAP)
-
-#define REQ_WBT 		(1ULL << __REQ_WBT)
 
 #define REQ_HPB_PREFER          (1ULL << __REQ_HPB_PREFER)
 #define REQ_FAILFAST_MASK \
